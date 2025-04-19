@@ -126,9 +126,13 @@ async def start_command(client: Client, message: Message):
 
         codeflix_msgs = []
         for msg in messages:
-            caption = (CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, 
-                                             filename=msg.document.file_name) if bool(CUSTOM_CAPTION) and bool(msg.document)
-                       else ("" if not msg.caption else msg.caption.html))
+            caption = (
+    CUSTOM_CAPTION.format(
+        previouscaption="" if not msg.caption else msg.caption.html, 
+        filename=msg.document.file_name
+    ) if bool(CUSTOM_CAPTION) and bool(msg.document)
+    else (f"📹 {msg.document.file_name}" if bool(msg.document) else "")
+            )
 
             reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
 
