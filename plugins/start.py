@@ -139,29 +139,17 @@ for msg in messages:
         reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
 
         try:
-    copied_msg = await msg.copy(
-        chat_id=message.from_user.id,
-        caption=caption,
-        parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup,
-        protect_content=PROTECT_CONTENT
-    )
-    codeflix_msgs.append(copied_msg)
-
-except FloodWait as e:
-    await asyncio.sleep(e.x)
-    copied_msg = await msg.copy(
-        chat_id=message.from_user.id,
-        caption=caption,
-        parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup,
-        protect_content=PROTECT_CONTENT
-    )
-    codeflix_msgs.append(copied_msg)
-
-except Exception as e:
-    print(f"Failed to send message: {e}")
-    pass
+                copied_msg = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, 
+                                            reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                codeflix_msgs.append(copied_msg)
+            except FloodWait as e:
+                await asyncio.sleep(e.x)
+                copied_msg = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, 
+                                            reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                codeflix_msgs.append(copied_msg)
+            except Exception as e:
+                print(f"Failed to send message: {e}")
+                pass
 
         if FILE_AUTO_DELETE > 0:
             notification_msg = await message.reply(
