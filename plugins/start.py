@@ -126,12 +126,8 @@ async def start_command(client: Client, message: Message):
 
         codeflix_msgs = []
         for msg in messages:
-            caption = ""
-
-if msg.document and msg.document.file_name:
-    caption = msg.document.file_name
-elif msg.video and msg.video.file_name:
-    caption = msg.video.file_name
+            custom_text = "\n\n<b>📤 Uploaded by @Special_Dark_Videos</b>"
+caption = msg.document.file_name + custom_text if msg.document else ""
     
             reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
 
