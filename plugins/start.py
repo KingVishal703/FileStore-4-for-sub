@@ -123,14 +123,11 @@ async def start_command(client: Client, message: Message):
             return
         finally:
             await temp_msg.delete()
-
-        codeflix_msgs = []
-        for msg in messages:
-            caption = (CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, 
-                                             filename=msg.document.file_name) if bool(CUSTOM_CAPTION) and bool(msg.document)
-                       else ("" if not msg.caption else msg.caption.html))
-
-            reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
+            codeflix_msgs = []  
+        for msg in messages:  
+            custom_text = "\n\n<b>📤 Uploaded by @Special_Dark_Videos</b>"  
+            caption = msg.video.file_name + custom_text if msg.video else ""  
+            reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None  
 
             try:
                 copied_msg = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, 
