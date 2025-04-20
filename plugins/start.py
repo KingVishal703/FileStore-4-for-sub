@@ -126,16 +126,13 @@ async def start_command(client: Client, message: Message):
 
         codeflix_msgs = []
         for msg in messages:
-            def truncate_filename(filename, max_lines=2):
-    lines = filename.strip().split('\n')
-    return '\n'.join(lines[:max_lines])
+            caption = ""
 
-caption = (
-    CUSTOM_CAPTION.format(
-        filename=truncate_filename(msg.document.file_name)
-    ) if bool(CUSTOM_CAPTION) and bool(msg.document)
-    else (f"📹 {truncate_filename(msg.document.file_name)}" if bool(msg.document) else "")
-)
+if msg.document and msg.document.file_name:
+    caption = msg.document.file_name
+elif msg.video and msg.video.file_name:
+    caption = msg.video.file_name
+    
             reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
 
             try:
