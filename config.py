@@ -58,8 +58,8 @@ TOKEN = True if os.environ.get('TOKEN', "True") == "True" else False  #For Enabl
 
 #TOKEN = False if os.environ.get('TOKEN', "FALSE") == 'FALSE' else False # For disable Token 
 
-SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "thalashort.com")
-SHORTLINK_API = os.environ.get("SHORTLINK_API", "dc9b3007848f472d2e60ae088bd10b9931461622")
+SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "linkcents.com")
+SHORTLINK_API = os.environ.get("SHORTLINK_API", "dcc4e31e2f3fd1cb80fbefb817bbe26cc46d7708")
 VERIFY_EXPIRE = int(os.environ.get('VERIFY_EXPIRE', 86400)) # Add time in seconds
 IS_VERIFY = os.environ.get("IS_VERIFY", "True")
 TUT_VID = os.environ.get("TUT_VID","https://t.me/hentai_Hanime_Update_Channel/72")
