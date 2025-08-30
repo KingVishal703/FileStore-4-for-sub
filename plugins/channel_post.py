@@ -1,4 +1,5 @@
-# channel_post.py
+# (©)Codexbotz
+
 import asyncio
 from io import BytesIO
 from pyrogram import filters, Client
@@ -6,18 +7,14 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import FloodWait
 
 from bot import Bot
-from config import ADMINS, DISABLE_CHANNEL_BUTTON, AUTO_POST_CHANNEL
+from config import ADMINS, AUTO_POST_CHANNEL, DISABLE_CHANNEL_BUTTON, DEFAULT_THUMBNAIL
 from helper_func import encode
 
-DEFAULT_THUMBNAIL = "https://telegra.ph/file/0c6f1a29e9d92b7d8e8a1.jpg"  # agar video thumbnail nahi hai
-
 @Bot.on_message(filters.private & filters.user(ADMINS) & ~filters.command(
-    ['start', 'id','users','broadcast','batch','genlink','stats']
-))
+    ['start', 'id', 'users', 'broadcast', 'batch', 'genlink', 'stats']))
 async def channel_post(client: Client, message: Message):
     reply_text = await message.reply_text("Please Wait...!", quote=True)
 
-    # Copy message to db_channel (optional, agar tumhara system me hai)
     try:
         post_message = await message.copy(chat_id=client.db_channel.id, disable_notification=True)
     except FloodWait as e:
@@ -25,27 +22,27 @@ async def channel_post(client: Client, message: Message):
         post_message = await message.copy(chat_id=client.db_channel.id, disable_notification=True)
     except Exception as e:
         print(e)
-        await reply_text.edit_text("Something went Wrong..!")
+        await reply_text.edit_text("Something went wrong..!")
         return
 
-    # Link generation
+    # Generate link
     converted_id = post_message.id * abs(client.db_channel.id)
     string = f"get-{converted_id}"
     base64_string = await encode(string)
     link = f"https://t.me/{client.username}?start={base64_string}"
+    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🔁 Share URL", url=f'https://telegram.me/share/url?url={link}')]])
 
-    reply_markup = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔁 Share URL", url=f'https://telegram.me/share/url?url={link}')]
-    ])
+    # Edit reply message
+    try:
+        await reply_text.edit(f"<b>Here is your link</b>\n\n{link}", reply_markup=reply_markup, disable_web_page_preview=True)
+    except:
+        pass  # ignore MessageNotModified
 
-    await reply_text.edit(
-        f"<b>Here is your link</b>\n\n{link}",
-        reply_markup=reply_markup,
-        disable_web_page_preview=True
-    )
-
-    # Thumbnail handling
+    # --- Thumbnail handling ---
     thumbnail_bytes = None
+    is_url = False
+
+    # Agar video ke upar preview image hai
     if message.video and message.video.thumbs:
         try:
             thumb_file = await client.download_media(message.video.thumbs[0].file_id, in_memory=True)
@@ -55,22 +52,31 @@ async def channel_post(client: Client, message: Message):
             print("Thumbnail download failed:", e)
             thumbnail_bytes = None
 
-    # Agar thumbnail nahi mila to default image use karo
+    # Agar thumbnail nahi mili to default image use karo
     if thumbnail_bytes is None:
-        thumbnail_bytes = DEFAULT_THUMBNAIL
+        thumbnail_bytes = DEFAULT_THUMBNAIL  # ye URL hona chahiye
+        is_url = True
 
-    # Auto post to channel
+    # --- Auto post to channel ---
     try:
-        await client.send_photo(
-            chat_id=AUTO_POST_CHANNEL,
-            photo=thumbnail_bytes,
-            caption=f"🎬 <b>New Video Uploaded!</b>\n\n🔗 <b>Link:</b> {link}",
-            reply_markup=reply_markup
-        )
+        if is_url:
+            await client.send_photo(
+                chat_id=AUTO_POST_CHANNEL,
+                photo=thumbnail_bytes,
+                caption=f"🎬 <b>New Video Uploaded!</b>\n\n🔗 <b>Link:</b> {link}",
+                reply_markup=reply_markup
+            )
+        else:
+            await client.send_photo(
+                chat_id=AUTO_POST_CHANNEL,
+                photo=thumbnail_bytes,
+                caption=f"🎬 <b>New Video Uploaded!</b>\n\n🔗 <b>Link:</b> {link}",
+                reply_markup=reply_markup
+            )
     except Exception as e:
         print("Auto post failed:", e)
 
-    # Optional: update post message buttons
+    # Edit post message with button if enabled
     if not DISABLE_CHANNEL_BUTTON:
         try:
             await post_message.edit_reply_markup(reply_markup)
