@@ -40,26 +40,26 @@ async def channel_post(client: Client, message: Message):
 
     # --- Thumbnail handling ---
     thumbnail_bytes = None
-    is_url = False
+    use_url = False
 
-    # Agar video ke upar preview image hai
+    # Try to get video preview thumbnail
     if message.video and message.video.thumbs:
         try:
-            thumb_file = await client.download_media(message.video.thumbs[0].file_id, in_memory=True)
+            thumb_file = await client.download_media(message.video.thumbs[-1].file_id, in_memory=True)
             thumbnail_bytes = BytesIO(thumb_file)
             thumbnail_bytes.name = "thumbnail.jpg"
         except Exception as e:
             print("Thumbnail download failed:", e)
             thumbnail_bytes = None
 
-    # Agar thumbnail nahi mili to default image use karo
+    # If thumbnail not available, use DEFAULT_THUMBNAIL
     if thumbnail_bytes is None:
-        thumbnail_bytes = DEFAULT_THUMBNAIL  # ye URL hona chahiye
-        is_url = True
+        thumbnail_bytes = DEFAULT_THUMBNAIL  # could be a URL or local path
+        use_url = True
 
     # --- Auto post to channel ---
     try:
-        if is_url:
+        if use_url:
             await client.send_photo(
                 chat_id=AUTO_POST_CHANNEL,
                 photo=thumbnail_bytes,
