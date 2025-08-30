@@ -1,4 +1,4 @@
-# Don't Remove Credit @CodeFlix_Bots, @rohit_1888
+hi# Don't Remove Credit @CodeFlix_Bots, @rohit_1888
 # Ask Doubt on telegram @CodeflixSupport
 #
 # Copyright (C) 2025 by Codeflix-Bots@Github, < https://github.com/Codeflix-Bots >.
@@ -39,6 +39,7 @@ DB_NAME = os.environ.get("DATABASE_NAME", "Cluster0")
 #Time in seconds for message delete, put 0 to never delete
 TIME = int(os.environ.get("TIME", "2400"))
 
+AUTO_POST_CHANNEL = -1001234567890   # yaha apne channel ka id dalo
 
 #force sub channel id, if you want enable force sub
 FORCE_SUB_CHANNEL1 = int(os.environ.get("FORCE_SUB_CHANNEL1", "-1002160196977"))
