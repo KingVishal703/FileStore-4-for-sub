@@ -15,6 +15,7 @@ from helper_func import encode
 async def channel_post(client: Client, message: Message):
     reply_text = await message.reply_text("Please Wait...!", quote=True)
 
+    # --- Copy message to bot's DB channel ---
     try:
         post_message = await message.copy(chat_id=client.db_channel.id, disable_notification=True)
     except FloodWait as e:
@@ -25,7 +26,7 @@ async def channel_post(client: Client, message: Message):
         await reply_text.edit_text("Something went wrong..!")
         return
 
-    # Generate link
+    # --- Generate link ---
     converted_id = post_message.id * abs(client.db_channel.id)
     string = f"get-{converted_id}"
     base64_string = await encode(string)
@@ -42,19 +43,21 @@ async def channel_post(client: Client, message: Message):
     thumbnail_bytes = None
     use_url = False
 
-    # Try to get video preview thumbnail
-    if message.video and message.video.thumbs:
+    if message.video:
         try:
-            thumb_file = await client.download_media(message.video.thumbs[-1].file_id, in_memory=True)
-            thumbnail_bytes = BytesIO(thumb_file)
-            thumbnail_bytes.name = "thumbnail.jpg"
+            # Take the last thumbnail (usually highest resolution)
+            if message.video.thumbs:
+                thumb_file_path = await client.download_media(message.video.thumbs[-1].file_id)
+                with open(thumb_file_path, "rb") as f:
+                    thumbnail_bytes = BytesIO(f.read())
+                    thumbnail_bytes.name = "thumbnail.jpg"
         except Exception as e:
             print("Thumbnail download failed:", e)
             thumbnail_bytes = None
 
-    # If thumbnail not available, use DEFAULT_THUMBNAIL
+    # If thumbnail not found, fallback to default
     if thumbnail_bytes is None:
-        thumbnail_bytes = DEFAULT_THUMBNAIL  # could be a URL or local path
+        thumbnail_bytes = DEFAULT_THUMBNAIL  # URL
         use_url = True
 
     # --- Auto post to channel ---
