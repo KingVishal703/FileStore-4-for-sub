@@ -31,13 +31,18 @@ async def channel_post(client: Client, message: Message):
     string = f"get-{converted_id}"
     base64_string = await encode(string)
     link = f"https://t.me/{client.username}?start={base64_string}"
-    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🔁 Share URL", url=f'https://telegram.me/share/url?url={link}')]])
 
-    # Edit reply message
-    try:
-        await reply_text.edit(f"<b>Here is your link</b>\n\n{link}", reply_markup=reply_markup, disable_web_page_preview=True)
-    except:
-        pass  # ignore MessageNotModified
+    # --- Extract video title (first 2 lines only) ---
+    title_text = ""
+    if message.caption:
+        lines = message.caption.split("\n")
+        title_text = "\n".join(lines[:2])  # first 2 lines
+
+    # --- Inline buttons ---
+    reply_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🎬 Watch Video", url=link)],
+        [InlineKeyboardButton("🔁 Share URL", url=f'https://telegram.me/share/url?url={link}')]
+    ])
 
     # --- Thumbnail handling ---
     thumbnail_bytes = None
@@ -62,18 +67,19 @@ async def channel_post(client: Client, message: Message):
 
     # --- Auto post to channel ---
     try:
+        caption_text = f"🎬 <b>New Video Uploaded!</b>\n\n{title_text}\n\n🔗 <b>Link:</b> {link}"
         if use_url:
             await client.send_photo(
                 chat_id=AUTO_POST_CHANNEL,
                 photo=thumbnail_bytes,
-                caption=f"🎬 <b>New Video Uploaded!</b>\n\n🔗 <b>Link:</b> {link}",
+                caption=caption_text,
                 reply_markup=reply_markup
             )
         else:
             await client.send_photo(
                 chat_id=AUTO_POST_CHANNEL,
                 photo=thumbnail_bytes,
-                caption=f"🎬 <b>New Video Uploaded!</b>\n\n🔗 <b>Link:</b> {link}",
+                caption=caption_text,
                 reply_markup=reply_markup
             )
     except Exception as e:
