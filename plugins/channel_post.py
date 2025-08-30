@@ -1,42 +1,78 @@
+# channel_post.py
+import asyncio
 from io import BytesIO
 from pyrogram import filters, Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.errors import FloodWait
+
 from bot import Bot
-from config import ADMINS, AUTO_POST_CHANNEL, DISABLE_CHANNEL_BUTTON
+from config import ADMINS, DISABLE_CHANNEL_BUTTON, AUTO_POST_CHANNEL
 from helper_func import encode
 
-@Bot.on_message(filters.private & filters.user(ADMINS) & ~filters.command(['start','id','users','broadcast','batch','genlink','stats']))
+DEFAULT_THUMBNAIL = "https://telegra.ph/file/0c6f1a29e9d92b7d8e8a1.jpg"  # agar video thumbnail nahi hai
+
+@Bot.on_message(filters.private & filters.user(ADMINS) & ~filters.command(
+    ['start', 'id','users','broadcast','batch','genlink','stats']
+))
 async def channel_post(client: Client, message: Message):
     reply_text = await message.reply_text("Please Wait...!", quote=True)
-    
-    # Generate link for video
-    converted_id = message.id * 123456  # simple unique multiplier
+
+    # Copy message to db_channel (optional, agar tumhara system me hai)
+    try:
+        post_message = await message.copy(chat_id=client.db_channel.id, disable_notification=True)
+    except FloodWait as e:
+        await asyncio.sleep(e.x)
+        post_message = await message.copy(chat_id=client.db_channel.id, disable_notification=True)
+    except Exception as e:
+        print(e)
+        await reply_text.edit_text("Something went Wrong..!")
+        return
+
+    # Link generation
+    converted_id = post_message.id * abs(client.db_channel.id)
     string = f"get-{converted_id}"
     base64_string = await encode(string)
     link = f"https://t.me/{client.username}?start={base64_string}"
-    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🔁 Share URL", url=f'https://telegram.me/share/url?url={link}')]])
 
-    await reply_text.edit(f"<b>Here is your link</b>\n\n{link}", reply_markup=reply_markup, disable_web_page_preview=True)
+    reply_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔁 Share URL", url=f'https://telegram.me/share/url?url={link}')]
+    ])
 
-    try:
-        # Thumbnail handling
-        if message.video and message.video.thumbs:
+    await reply_text.edit(
+        f"<b>Here is your link</b>\n\n{link}",
+        reply_markup=reply_markup,
+        disable_web_page_preview=True
+    )
+
+    # Thumbnail handling
+    thumbnail_bytes = None
+    if message.video and message.video.thumbs:
+        try:
             thumb_file = await client.download_media(message.video.thumbs[0].file_id, in_memory=True)
-            thumb_bytes = BytesIO(thumb_file)
-            thumb_bytes.name = "thumbnail.jpg"
-            await client.send_photo(
-                chat_id=AUTO_POST_CHANNEL,
-                photo=thumb_bytes,
-                caption=f"🎬 <b>New Video Uploaded!</b>\n\n🔗 <b>Link:</b> {link}",
-                reply_markup=reply_markup
-            )
-        else:
-            # Default image if no thumbnail
-            await client.send_photo(
-                chat_id=AUTO_POST_CHANNEL,
-                photo="https://telegra.ph/file/0c6f1a29e9d92b7d8e8a1.jpg",
-                caption=f"🎬 <b>New Video Uploaded!</b>\n\n🔗 <b>Link:</b> {link}",
-                reply_markup=reply_markup
-            )
+            thumbnail_bytes = BytesIO(thumb_file)
+            thumbnail_bytes.name = "thumbnail.jpg"
+        except Exception as e:
+            print("Thumbnail download failed:", e)
+            thumbnail_bytes = None
+
+    # Agar thumbnail nahi mila to default image use karo
+    if thumbnail_bytes is None:
+        thumbnail_bytes = DEFAULT_THUMBNAIL
+
+    # Auto post to channel
+    try:
+        await client.send_photo(
+            chat_id=AUTO_POST_CHANNEL,
+            photo=thumbnail_bytes,
+            caption=f"🎬 <b>New Video Uploaded!</b>\n\n🔗 <b>Link:</b> {link}",
+            reply_markup=reply_markup
+        )
     except Exception as e:
         print("Auto post failed:", e)
+
+    # Optional: update post message buttons
+    if not DISABLE_CHANNEL_BUTTON:
+        try:
+            await post_message.edit_reply_markup(reply_markup)
+        except:
+            pass
