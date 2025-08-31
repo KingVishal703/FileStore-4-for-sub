@@ -73,14 +73,16 @@ async def channel_post(client: Client, message: Message):
                 chat_id=AUTO_POST_CHANNEL,
                 photo=thumbnail_bytes,
                 caption=caption_text,
-                reply_markup=reply_markup
+                reply_markup=reply_markup,
+                has_spoiler=True   # 👈 Spoiler effect added
             )
         else:
             await client.send_photo(
                 chat_id=AUTO_POST_CHANNEL,
                 photo=thumbnail_bytes,
                 caption=caption_text,
-                reply_markup=reply_markup
+                reply_markup=reply_markup,
+                has_spoiler=True   # 👈 Spoiler effect added
             )
     except Exception as e:
         print("Auto post failed:", e)
