@@ -151,3 +151,37 @@ Plan selected: ₹{plan}"
         )
 
     await message.reply("Payment proof admin को भेज दिया गया है। कृपया response का इंतजार करें।")
+
+
+
+from time import time
+from database import db_get_pending_plan, db_clear_pending_plan, db_set_premium_expiry
+from config import PREMIUM_DURATION
+
+@Bot.on_callback_query()
+async def admin_confirm_handler(client, query):
+    data = query.data
+
+    if data.startswith("confirm_") or data.startswith("reject_"):
+        user_id = int(data.split("_")[1])
+
+        if data.startswith("confirm_"):
+            plan = await db_get_pending_plan(user_id)
+            
+            if not plan:
+                await query.answer("User का कोई pending plan नहीं है।", show_alert=True)
+                return
+            
+            expires = int(time()) + PREMIUM_DURATION.get(plan, 7 * 86400)
+            await db_set_premium_expiry(user_id, expires)
+            await db_clear_pending_plan(user_id)
+
+            await query.answer("User का प्रीमियम कन्फर्म कर दिया गया है!", show_alert=True)
+            await query.edit_message_reply_markup(None)
+            await client.send_message(user_id, f"आपका प्रीमियम सक्रिय कर दिया गया है {PREMIUM_DURATION.get(plan)//86400} दिनों के लिए।")
+
+        elif data.startswith("reject_"):
+            await db_clear_pending_plan(user_id)
+            await query.answer("Payment proof rejected!", show_alert=True)
+            await query.edit_message_reply_markup(None)
+            await client.send_message(user_id, "आपका भुगतान सत्यापित नहीं हो सका है। कृपया पुनः प्रयास करें।")
