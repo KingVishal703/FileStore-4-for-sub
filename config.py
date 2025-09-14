@@ -79,7 +79,7 @@ PREMIUM_DURATION = {
     "60": 90 * 86400,
 }
 
-ADMIN_ID = 123456789  # अपना Telegram User ID यहाँ डालें
+ADMIN_ID = 5654093580 # अपना Telegram User ID यहाँ डालें
 
 UPI_ID = "your-upi@bank"  # अपना UPI ID यहाँ डालें
 QR_CODE_URL = "https://example.com/your_qr_code.png"  # अपना QR कोड का URL यहाँ डालें
