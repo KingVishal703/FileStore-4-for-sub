@@ -65,17 +65,17 @@ async def channel_post(client: Client, message: Message):
         thumbnail_bytes = DEFAULT_THUMBNAIL  # URL
         use_url = True
         
-        # --- Auto post to channel ---
-    try:
-        caption_text = (
-            f"🎬 <b>New Video Uploaded!</b>\n\n{title_text}\n\n"
-            f"🔗 <b>Link:</b> {link}\n\n"
-            "⚠️ Bot ko bas ek bar verify kar lo aur pure din (24 hr) free mein videos ka maja lo\n\n"
-            "✅ How to Verify Bot -"
-        )
-        if use_url:
-            # your logic here
-            pass
+    # --- Auto post to channel ---
+try:
+    caption_text = (
+        f"🎬 <b>New Video Uploaded!</b>\n\n{title_text}\n\n"
+        f"🔗 <b>Link:</b> {link}\n\n"
+        "⚠️ Bot ko bas ek bar verify kar lo aur pure din (24 hr) free mein videos ka maja lo\n\n"
+        "✅ How to Verify Bot -"
+    )
+    if use_url:
+        # your logic here
+        pass
             await client.send_photo(
                 chat_id=AUTO_POST_CHANNEL,
                 photo=thumbnail_bytes,
