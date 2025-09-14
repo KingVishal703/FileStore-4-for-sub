@@ -135,10 +135,10 @@ async def payment_proof_handler(client, message):
     else:
         await client.send_message(
             ADMIN_ID,
-            caption + f"
-
-{message.text}",
-            reply_markup=buttons
+            caption + f"""Payment proof from user: {user_id}
+Plan selected: ₹{plan}
+{message.text}""",
+    reply_markup=buttons
         )
 
     await message.reply("Payment proof admin को भेज दिया गया है। कृपया response का इंतजार करें।")
