@@ -54,3 +54,26 @@ async def full_userbase():
 async def del_user(user_id: int):
     await user_data.delete_one({'_id': user_id})
     return
+
+
+
+async def db_set_premium_expiry(user_id, expires):
+    await user_data.update_one({"_id": user_id}, {"$set": {"premium_expires": expires}})
+
+async def db_get_premium_expiry(user_id):
+    user = await user_data.find_one({"_id": user_id})
+    if user:
+        return user.get("premium_expires", 0)
+    return 0
+
+async def db_set_pending_plan(user_id, plan):
+    await user_data.update_one({"_id": user_id}, {"$set": {"pending_plan": plan}})
+
+async def db_get_pending_plan(user_id):
+    user = await user_data.find_one({"_id": user_id})
+    if user:
+        return user.get("pending_plan", None)
+    return None
+
+async def db_clear_pending_plan(user_id):
+    await user_data.update_one({"_id": user_id}, {"$unset": {"pending_plan": ""}})
