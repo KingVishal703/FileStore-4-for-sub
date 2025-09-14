@@ -119,8 +119,7 @@ async def payment_proof_handler(client, message):
         await message.reply("कृपया पहले प्रीमियम प्लान चुनें।")
         return
 
-    caption = f"Payment proof from user: {user_id}
-Plan selected: ₹{plan}"
+    caption = f"Payment proof from user: {user_id} Plan selected: ₹{plan}"
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("Confirm ✅", callback_data=f"confirm_{user_id}")],
         [InlineKeyboardButton("Reject ❌", callback_data=f"reject_{user_id}")]
