@@ -98,8 +98,7 @@ async def start_command(client: Client, message: Message):
             ]
             return await message.reply_photo(
                 photo=START_PIC,
-                caption="Your token has expired or you are not verified.
-Please verify yourself or buy premium to continue using the bot.",
+                caption="Your token has expired or you are not verified.\nPlease verify yourself or buy premium to continue using the bot.",
                 reply_markup=InlineKeyboardMarkup(buttons),
                 protect_content=False,
                 quote=True
@@ -143,8 +142,14 @@ Please verify yourself or buy premium to continue using the bot.",
             codeflix_msgs = []
 
         for msg in messages:
-            custom_text = "\n<b>📤 join mein channel 👉 @Hotvking</b>"
-            caption = msg.video.file_name + custom_text if msg.video else ""
+            custom_text = "\n<b>📤 join mein channel 👉 @V_Anime_Hindi</b>"
+            if msg.video and msg.video.file_name:
+                caption = msg.video.file_name + custom_text
+            elif msg.caption:
+                caption = msg.caption + custom_text
+            else:
+                caption = custom_text
+
             reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
             try:
                 copied_msg = await msg.copy(
@@ -188,8 +193,7 @@ Please verify yourself or buy premium to continue using the bot.",
                 keyboard = InlineKeyboardMarkup(
                     [[InlineKeyboardButton("ɢᴇᴛ ғɪʟᴇ ᴀɢᴀɪɴ!", url=reload_url)]]
                 ) if reload_url else None
-                await notification_msg.edit("<b>Your video/file is successfully deleted!
-Click below button to get your deleted file/video 👇</b>", reply_markup=keyboard)
+                await notification_msg.edit("<b>Your video/file is successfully deleted!\nClick below button to get your deleted file/video 👇</b>", reply_markup=keyboard)
             except Exception as e:
                 print(f"Error updating notification with 'Get File Again' button: {e}")
 
@@ -299,16 +303,11 @@ async def delete_broadcast(client: Bot, message: Message):
             except:
                 unsuccessful += 1
             total += 1
-        status = (f"<b><u>Broadcast with Auto-Delete...</u>
-"
-                  f"Total Users: <code>{total}</code>
-"
-                  f"Successful: <code>{successful}</code>
-"
-                  f"Blocked Users: <code>{blocked}</code>
-"
-                  f"Deleted Accounts: <code>{deleted}</code>
-"
+        status = (f"<b><u>Broadcast with Auto-Delete...</u>\n"
+                  f"Total Users: <code>{total}</code>\n"
+                  f"Successful: <code>{successful}</code>\n"
+                  f"Blocked Users: <code>{blocked}</code>\n"
+                  f"Deleted Accounts: <code>{deleted}</code>\n"
                   f"Unsuccessful: <code>{unsuccessful}</code></b>")
         return await pls_wait.edit(status)
     else:
