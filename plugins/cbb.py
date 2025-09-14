@@ -128,16 +128,21 @@ async def callback_handler(client: Bot, query: CallbackQuery):
 
 
 # ---------- Payment Proof Handler ----------
-@Bot.on_message(filters.private & filters.text)
+# सिर्फ़ जब यूज़र /paymentproof कमांड भेजे
+@Bot.on_message(filters.command("paymentproof") & filters.private)
 async def payment_proof_handler(client, message):
     user_id = message.from_user.id
     plan = await db_get_pending_plan(user_id)
+    premium_expiry = await db_get_premium_expiry(user_id)
+    now = int(time.time())
 
-    if not plan:
-        await message.reply("कृपया पहले प्रीमियम प्लान चुनें।")
+    # Premium check, केवल अगर प्रीमियम या एक्टिवेट सही है तभी आगे जाएं
+    if not plan or (premium_expiry is not None and premium_expiry < now):
+        await message.reply("कृपया पहले प्रीमियम प्लान चुनें या एक्टिवेट करें।")
         return
 
-    caption = f"📩 Payment proof from user: <code>{user_id}</code>\n💰 Plan: ₹{plan}"
+    caption = f"📩 Payment proof from user: <code>{user_id}</code>
+💰 Plan: ₹{plan}"
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("Confirm ✅", callback_data=f"confirm_{user_id}")],
         [InlineKeyboardButton("Reject ❌", callback_data=f"reject_{user_id}")]
@@ -151,7 +156,10 @@ async def payment_proof_handler(client, message):
             reply_markup=buttons
         )
     else:
-        full_caption = f"{caption}\n\n📝 Message:\n{message.text}"
+        full_caption = f"{caption}
+
+📝 Message:
+{message.text}"
         await client.send_message(
             ADMIN_ID,
             full_caption,
