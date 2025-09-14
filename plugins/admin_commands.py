@@ -1,5 +1,5 @@
 from pyrogram import filters
-from database import db_set_premium_expiry
+from database.database import db_set_premium_expiry
 from time import time
 from config import PREMIUM_DURATION, ADMIN_ID
 
