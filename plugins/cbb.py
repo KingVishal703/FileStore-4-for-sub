@@ -110,3 +110,44 @@ async def cb_handler(client, query):
 
     elif data == "back_to_plan":
         await query.message.edit_text("प्लान चुनें:", reply_markup=plans_keyboard)
+
+
+
+from pyrogram import filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from database import db_get_pending_plan
+from config import ADMIN_ID
+
+@Bot.on_message(filters.private & filters.text)
+async def payment_proof_handler(client, message):
+    user_id = message.from_user.id
+    plan = await db_get_pending_plan(user_id)
+
+    if not plan:
+        await message.reply("कृपया पहले प्रीमियम प्लान चुनें।")
+        return
+
+    caption = f"Payment proof from user: {user_id}
+Plan selected: ₹{plan}"
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("Confirm ✅", callback_data=f"confirm_{user_id}")],
+        [InlineKeyboardButton("Reject ❌", callback_data=f"reject_{user_id}")]
+    ])
+
+    if message.photo:
+        await client.send_photo(
+            ADMIN_ID,
+            photo=message.photo.file_id,
+            caption=caption,
+            reply_markup=buttons
+        )
+    else:
+        await client.send_message(
+            ADMIN_ID,
+            caption + f"
+
+{message.text}",
+            reply_markup=buttons
+        )
+
+    await message.reply("Payment proof admin को भेज दिया गया है। कृपया response का इंतजार करें।")
