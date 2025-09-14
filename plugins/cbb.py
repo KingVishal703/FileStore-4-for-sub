@@ -136,13 +136,16 @@ async def payment_proof_handler(client, message):
     premium_expiry = await db_get_premium_expiry(user_id)
     now = int(time.time())
 
-    # Premium check, केवल अगर प्रीमियम या एक्टिवेट सही है तभी आगे जाएं
+    # Premium check: केवल अगर प्रीमियम प्लान चुना है और एक्टिव है तभी आगे जाएं
     if not plan or (premium_expiry is not None and premium_expiry < now):
-        await message.reply("कृपया पहले प्रीमियम प्लान चुनें या एक्टिवेट करें।")
+        await message.reply("❌ कृपया पहले प्रीमियम प्लान चुनें या एक्टिवेट करें।")
         return
 
-    caption = f"📩 Payment proof from user: <code>{user_id}</code>
-💰 Plan: ₹{plan}"
+    caption = (
+        f"📩 Payment proof from user: <code>{user_id}</code>\n"
+        f"💰 Plan: ₹{plan}"
+    )
+
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("Confirm ✅", callback_data=f"confirm_{user_id}")],
         [InlineKeyboardButton("Reject ❌", callback_data=f"reject_{user_id}")]
@@ -153,17 +156,19 @@ async def payment_proof_handler(client, message):
             ADMIN_ID,
             photo=message.photo.file_id,
             caption=caption,
-            reply_markup=buttons
+            reply_markup=buttons,
+            parse_mode="html"
         )
     else:
-        full_caption = f"{caption}
-
-📝 Message:
-{message.text}"
+        full_caption = (
+            f"{caption}\n\n"
+            f"📝 Message:\n{message.text}"
+        )
         await client.send_message(
             ADMIN_ID,
             full_caption,
-            reply_markup=buttons
+            reply_markup=buttons,
+            parse_mode="html"
         )
 
     await message.reply("✅ Payment proof admin को भेज दिया गया है। कृपया response का इंतजार करें।")
