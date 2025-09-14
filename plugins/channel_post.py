@@ -10,6 +10,7 @@ from bot import Bot
 from config import ADMINS, AUTO_POST_CHANNEL, DISABLE_CHANNEL_BUTTON, DEFAULT_THUMBNAIL
 from helper_func import encode
 
+
 @Bot.on_message(filters.private & filters.user(ADMINS) & ~filters.command(
     ['start', 'id', 'users', 'broadcast', 'batch', 'genlink', 'stats']))
 async def channel_post(client: Client, message: Message):
@@ -17,12 +18,18 @@ async def channel_post(client: Client, message: Message):
 
     # --- Copy message to bot's DB channel ---
     try:
-        post_message = await message.copy(chat_id=client.db_channel.id, disable_notification=True)
+        post_message = await message.copy(
+            chat_id=client.db_channel.id,
+            disable_notification=True
+        )
     except FloodWait as e:
         await asyncio.sleep(e.x)
-        post_message = await message.copy(chat_id=client.db_channel.id, disable_notification=True)
+        post_message = await message.copy(
+            chat_id=client.db_channel.id,
+            disable_notification=True
+        )
     except Exception as e:
-        print(e)
+        print("DB copy failed:", e)
         await reply_text.edit_text("Something went wrong..!")
         return
 
@@ -36,7 +43,7 @@ async def channel_post(client: Client, message: Message):
     title_text = ""
     if message.caption:
         lines = message.caption.split("\n")
-        title_text = "\n".join(lines[:2])  # first 2 lines
+        title_text = "\n".join(lines[:2])  # only first 2 lines
 
     # --- Inline buttons ---
     reply_markup = InlineKeyboardMarkup([
@@ -50,8 +57,8 @@ async def channel_post(client: Client, message: Message):
 
     if message.video:
         try:
-            # Take the last thumbnail (usually highest resolution)
             if message.video.thumbs:
+                # Highest resolution thumb
                 thumb_file_path = await client.download_media(message.video.thumbs[-1].file_id)
                 with open(thumb_file_path, "rb") as f:
                     thumbnail_bytes = BytesIO(f.read())
@@ -60,43 +67,34 @@ async def channel_post(client: Client, message: Message):
             print("Thumbnail download failed:", e)
             thumbnail_bytes = None
 
-    # If thumbnail not found, fallback to default
+    # If no thumbnail found, fallback to default URL
     if thumbnail_bytes is None:
         thumbnail_bytes = DEFAULT_THUMBNAIL  # URL
         use_url = True
-        
+
     # --- Auto post to channel ---
-try:
-    caption_text = (
-        f"🎬 <b>New Video Uploaded!</b>\n\n{title_text}\n\n"
-        f"🔗 <b>Link:</b> {link}\n\n"
-        "⚠️ Bot ko bas ek bar verify kar lo aur pure din (24 hr) free mein videos ka maja lo\n\n"
-        "✅ How to Verify Bot -"
-    )
-    if use_url:
-        # your logic here
-        pass
-            await client.send_photo(
-                chat_id=AUTO_POST_CHANNEL,
-                photo=thumbnail_bytes,
-                caption=caption_text,
-                reply_markup=reply_markup,
-                has_spoiler=True   # 👈 Spoiler effect added
-            )
-        else:
-            await client.send_photo(
-                chat_id=AUTO_POST_CHANNEL,
-                photo=thumbnail_bytes,
-                caption=caption_text,
-                reply_markup=reply_markup,
-                has_spoiler=True   # 👈 Spoiler effect added
-            )
+    try:
+        caption_text = (
+            f"🎬 <b>New Video Uploaded!</b>\n\n{title_text}\n\n"
+            f"🔗 <b>Link:</b> {link}\n\n"
+            "⚠️ Bot ko bas ek bar verify kar lo aur pure din (24 hr) free mein videos ka maja lo\n\n"
+            "✅ How to Verify Bot -"
+        )
+
+        await client.send_photo(
+            chat_id=AUTO_POST_CHANNEL,
+            photo=thumbnail_bytes,  # BytesIO ya URL dono chalega
+            caption=caption_text,
+            reply_markup=reply_markup,
+            has_spoiler=True
+        )
+
     except Exception as e:
         print("Auto post failed:", e)
 
-    # Edit post message with button if enabled
+    # --- Edit DB channel post with buttons (optional) ---
     if not DISABLE_CHANNEL_BUTTON:
         try:
             await post_message.edit_reply_markup(reply_markup)
-        except:
-            pass
+        except Exception as e:
+            print("Edit buttons failed:", e)
