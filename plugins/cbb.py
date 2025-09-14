@@ -85,18 +85,10 @@ async def cb_handler(client, query):
         await db_set_pending_plan(user_id, plan)
 
         text = (
-            f"आपने ₹{plan} वाला प्लान चुना है। कृपया नीचे दिए गए UPI ID या QR Code से payment करें:
-
-"
-            f"UPI ID: `{UPI_ID}`
-
-"
-            f"या QR Code देखें:
-"
-            f"{QR_CODE_URL}
-
-"
-            "Payment करने के बाद नीचे 'Payment Confirm' बटन दबाएं।"
+    f"""आपने ₹{plan} वाला प्लान चुना है। कृपया नीचे दिए गए UPI ID या QR Code से payment करें:
+UPI ID: {UPI_ID}
+QR Code: {QR_CODE_URL}
+Payment करने के बाद नीचे 'Payment Confirm' बटन दबाएं।"""
         )
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("Payment Confirm", callback_data=f"confirm_{plan}")],
