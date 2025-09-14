@@ -60,7 +60,7 @@ async def cb_handler(client: Bot, query: CallbackQuery):
 
 
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from database import db_set_pending_plan
+from database.database import db_set_pending_plan
 from config import PREMIUM_DURATION, UPI_ID, QR_CODE_URL, ADMIN_ID
 
 plans_keyboard = InlineKeyboardMarkup([
@@ -115,7 +115,7 @@ async def cb_handler(client, query):
 
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from database import db_get_pending_plan
+from database.database import db_get_pending_plan
 from config import ADMIN_ID
 
 @Bot.on_message(filters.private & filters.text)
@@ -155,7 +155,7 @@ Plan selected: ₹{plan}"
 
 
 from time import time
-from database import db_get_pending_plan, db_clear_pending_plan, db_set_premium_expiry
+from database.database import db_get_pending_plan, db_clear_pending_plan, db_set_premium_expiry
 from config import PREMIUM_DURATION
 
 @Bot.on_callback_query()
