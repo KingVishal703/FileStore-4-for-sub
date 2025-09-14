@@ -133,12 +133,13 @@ async def payment_proof_handler(client, message):
             reply_markup=buttons
         )
     else:
+        # यहाँ एक ही स्ट्रिंग में पूरी caption भेजनी है
+        full_caption = f"Payment proof from user: {user_id} Plan selected: ₹{plan}
+{message.text}"
         await client.send_message(
             ADMIN_ID,
-            caption + f"""Payment proof from user: {user_id}
-Plan selected: ₹{plan}
-{message.text}""",
-    reply_markup=buttons
+            full_caption,
+            reply_markup=buttons
         )
 
     await message.reply("Payment proof admin को भेज दिया गया है। कृपया response का इंतजार करें।")
