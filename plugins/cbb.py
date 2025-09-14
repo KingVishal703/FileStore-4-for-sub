@@ -56,3 +56,57 @@ async def cb_handler(client: Bot, query: CallbackQuery):
             await query.message.reply_to_message.delete()
         except:
             pass
+
+
+
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from database import db_set_pending_plan
+from config import PREMIUM_DURATION, UPI_ID, QR_CODE_URL, ADMIN_ID
+
+plans_keyboard = InlineKeyboardMarkup([
+    [InlineKeyboardButton("₹10 - 7 दिन", callback_data="plan_10")],
+    [InlineKeyboardButton("₹30 - 30 दिन", callback_data="plan_30")],
+    [InlineKeyboardButton("₹60 - 90 दिन", callback_data="plan_60")]
+])
+
+@Bot.on_callback_query()
+async def cb_handler(client, query):
+    data = query.data
+    user_id = query.from_user.id
+
+    if data == "choose_plan":
+        await query.message.edit_text(
+            "प्लान चुनें:",
+            reply_markup=plans_keyboard
+        )
+
+    elif data.startswith("plan_"):
+        plan = data.split("_")[1]
+        await db_set_pending_plan(user_id, plan)
+
+        text = (
+            f"आपने ₹{plan} वाला प्लान चुना है। कृपया नीचे दिए गए UPI ID या QR Code से payment करें:
+
+"
+            f"UPI ID: `{UPI_ID}`
+
+"
+            f"या QR Code देखें:
+"
+            f"{QR_CODE_URL}
+
+"
+            "Payment करने के बाद नीचे 'Payment Confirm' बटन दबाएं।"
+        )
+        buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("Payment Confirm", callback_data=f"confirm_{plan}")],
+            [InlineKeyboardButton("Back", callback_data="choose_plan")]
+        ])
+        await query.message.edit_text(text, reply_markup=buttons)
+
+    elif data.startswith("confirm_"):
+        plan = data.split("_")[1]
+        await query.message.edit_text("कृपया अपने payment का screenshot या UTR ID भेजें, जिसे admin verify करेंगे।")
+
+    elif data == "back_to_plan":
+        await query.message.edit_text("प्लान चुनें:", reply_markup=plans_keyboard)
