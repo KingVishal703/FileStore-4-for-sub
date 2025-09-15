@@ -12,7 +12,11 @@ from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 from bot import Bot
 from config import *
 from helper_func import *
-from database.database import *
+from database.database import (
+    present_user, add_user, del_user, full_userbase,
+    db_verify_status, db_update_verify_status,
+    db_get_premium_expiry, db_set_premium_expiry
+)
 
 FILE_AUTO_DELETE = TIME
 TUT_VID = str(TUT_VID)
@@ -49,7 +53,6 @@ async def start_command(client: Client, message: Message):
             reply_markup=InlineKeyboardMarkup(buttons)
         )
 
-    # Yaha se file link case handle hoga
     #---------------- Force Subscription Check -----------------
     try:
         await client.get_chat_member(FORCE_SUB_CHANNEL1, user_id)
@@ -81,7 +84,7 @@ async def start_command(client: Client, message: Message):
         )
 
     #---------------- Verify / Premium Check -----------------
-    verify_status = await get_verify_status(user_id)
+    verify_status = await db_verify_status(user_id)
     premium_expiry = await db_get_premium_expiry(user_id)
     now = int(time.time())
     verified = verify_status.get("is_verified", False) or (premium_expiry > now)
@@ -89,7 +92,13 @@ async def start_command(client: Client, message: Message):
     # Agar user verified/premium nahi hai
     if not verified:
         token = ''.join(random.choices(rohit.ascii_letters + rohit.digits, k=10))
-        await update_verify_status(user_id, verify_token=token, is_verified=False, verified_time=0, link="")
+        new_status = {
+            "is_verified": False,
+            "verified_time": 0,
+            "verify_token": token,
+            "link": ""
+        }
+        await db_update_verify_status(user_id, new_status)
         link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, f'https://telegram.dog/{client.username}?start=verify_{token}')
         buttons = [
             [InlineKeyboardButton("• ᴏᴘᴇɴ ʟɪɴᴋ •", url=link)],
@@ -142,8 +151,6 @@ async def start_command(client: Client, message: Message):
         print(f"Error while sending file: {e}")
         await message.reply("❌ Something went wrong while fetching your file.")
     
-                        
-
 #------ User Listing -----
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
 async def get_users(client: Bot, message: Message):
