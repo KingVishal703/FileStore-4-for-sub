@@ -33,8 +33,8 @@ async def callback_handler(client: Bot, query: CallbackQuery):
             text=HELP_TXT.format(first=query.from_user.first_name),
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton('ʜᴏᴍᴇ', callback_data='start'),
-                 InlineKeyboardButton("ᴄʟᴏꜱᴇ", callback_data='close')]
+                [InlineKeyboardButton("ʜᴏᴍᴇ", callback_data="start"),
+                 InlineKeyboardButton("ᴄʟᴏꜱᴇ", callback_data="close")]
             ])
         )
 
@@ -43,8 +43,8 @@ async def callback_handler(client: Bot, query: CallbackQuery):
             text=ABOUT_TXT.format(first=query.from_user.first_name),
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton('ʜᴏᴍᴇ', callback_data='start'),
-                 InlineKeyboardButton('ᴄʟᴏꜱᴇ', callback_data='close')]
+                [InlineKeyboardButton("ʜᴏᴍᴇ", callback_data="start"),
+                 InlineKeyboardButton("ᴄʟᴏꜱᴇ", callback_data="close")]
             ])
         )
 
@@ -53,8 +53,8 @@ async def callback_handler(client: Bot, query: CallbackQuery):
             text=START_MSG.format(first=query.from_user.first_name),
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("ʜᴇʟᴘ", callback_data='help'),
-                 InlineKeyboardButton("ᴀʙᴏᴜᴛ", callback_data='about')]
+                [InlineKeyboardButton("ʜᴇʟᴘ", callback_data="help"),
+                 InlineKeyboardButton("ᴀʙᴏᴜᴛ", callback_data="about")]
             ])
         )
 
@@ -86,7 +86,7 @@ async def callback_handler(client: Bot, query: CallbackQuery):
         await query.message.edit_text(text, reply_markup=buttons)
 
     elif data.startswith("user_confirm_"):
-        # "Payment Confirm" के बाद proof भेजने का बटन दिखाओ
+        # Payment proof upload option
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("📤 Send Screenshot", callback_data="send_proof")],
             [InlineKeyboardButton("🔙 Back", callback_data="choose_plan")]
@@ -97,7 +97,7 @@ async def callback_handler(client: Bot, query: CallbackQuery):
         )
 
     elif data == "send_proof":
-        # State में फ्लैग सेट: अब अगला फोटो/टेक्स्ट payment proof है
+        # Set payment pending state
         await db_set_payment_pending(user_id, True)
         await query.answer("अब payment screenshot या UTR ID भेजें।", show_alert=True)
         await query.message.reply("अब कृपया अपना payment screenshot या UTR ID भेजें।")
@@ -123,6 +123,7 @@ async def callback_handler(client: Bot, query: CallbackQuery):
                 target_user,
                 f"🎉 आपका प्रीमियम सक्रिय कर दिया गया है {PREMIUM_DURATION.get(plan)//86400} दिनों के लिए।"
             )
+
         elif data.startswith("reject_"):
             await db_clear_pending_plan(target_user)
             await query.answer("❌ Payment proof reject कर दिया गया।", show_alert=True)
@@ -139,12 +140,12 @@ async def callback_handler(client: Bot, query: CallbackQuery):
 @Bot.on_message(filters.private & (filters.photo | filters.text))
 async def payment_proof_handler(client, message):
     user_id = message.from_user.id
-    is_waiting = await db_is_payment_pending(user_id)  # True = user just hit Send Screenshot!
+    is_waiting = await db_is_payment_pending(user_id)  # True = user pressed Send Screenshot
 
     if not is_waiting:
-        return  # Ignore बाकी user messages
+        return  # Ignore normal user messages
 
-    # एक बार proof भेज चुका, अब flag reset करो
+    # Reset flag after proof received
     await db_set_payment_pending(user_id, False)
 
     caption = f"📩 Payment proof from user: <code>{user_id}</code>"
@@ -153,7 +154,7 @@ async def payment_proof_handler(client, message):
         [InlineKeyboardButton("Reject ❌", callback_data=f"reject_{user_id}")]
     ])
 
-    # अगर multiple admins hain to sabko भेजो
+    # Send proof to all admins
     for admin in ADMINS:
         if message.photo:
             await client.send_photo(
