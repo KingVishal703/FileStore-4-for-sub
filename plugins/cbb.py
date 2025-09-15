@@ -136,3 +136,75 @@ async def callback_handler(client: Bot, query: CallbackQuery):
                 ])
             )
 
+# ---------- Payment Proof Handler ----------
+@Bot.on_message(filters.private & (filters.photo | filters.text))
+async def payment_proof_handler(client, message):
+    """
+    Flow:
+    - Only accept proof when db_is_payment_pending(user_id) is True.
+    - When proof arrives (photo or text with UTR), reset flag and forward to all admins.
+    - Include user's username and user_id in caption/message so admins can easily identify.
+    - Admin buttons will be confirm_<user_id> / reject_<user_id>.
+    """
+
+    user_id = message.from_user.id
+
+    # check if user was asked to send proof
+    is_waiting = await db_is_payment_pending(user_id)
+    if not is_waiting:
+        # ignore normal messages; but for debugging you can optionally print
+        # print(f"Proof handler: user {user_id} not waiting for payment proof.")
+        return
+
+    # reset flag immediately to avoid duplicates
+    await db_set_payment_pending(user_id, False)
+
+    # get user's pending plan (if any) so admins can see the chosen plan too
+    pending_plan = await db_get_pending_plan(user_id) or "N/A"
+
+    # prepare caption that includes username and id
+    uname = ""
+    try:
+        if message.from_user.username:
+            uname = f"@{message.from_user.username}"
+    except:
+        uname = ""
+
+    caption_intro = (f"📩 Payment proof from user: <b>{message.from_user.first_name}</b> "
+                     f"{uname}\n<code>{user_id}</code>\n\n"
+                     f"💠 Selected Plan: ₹{pending_plan}\n\n")
+
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("Confirm ✅", callback_data=f"confirm_{user_id}"),
+         InlineKeyboardButton("Reject ❌", callback_data=f"reject_{user_id}")]
+    ])
+
+    # forward photo/text to admins with caption + buttons
+    for admin in ADMINS:
+        try:
+            if message.photo:
+                # message.photo is a list; use the photo file_id from the highest-resolution
+                # In pyrogram, message.photo.file_id is accepted
+                await client.send_photo(
+                    admin,
+                    photo=message.photo.file_id,
+                    caption=caption_intro + "Please verify the payment proof and press Confirm/Reject.",
+                    reply_markup=buttons,
+                    parse_mode="HTML"
+                )
+            else:
+                # text / UTR sent
+                full_caption = caption_intro + "📝 Submitted Message:\n" + (message.text or "")
+                await client.send_message(
+                    admin,
+                    full_caption,
+                    reply_markup=buttons,
+                    parse_mode="HTML"
+                )
+        except Exception as e:
+            # if sending to an admin fails, continue to next admin
+            # optionally log: print(f"Failed to send proof to admin {admin}: {e}")
+            continue
+
+    # tell user that proof sent to admins
+    await message.reply("✅ Payment proof admin को भेज दिया गया है। Admins जल्द ही verify करेंगे — कृपया थोड़ी देर में चेक करें।")
