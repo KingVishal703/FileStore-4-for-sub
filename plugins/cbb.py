@@ -161,7 +161,7 @@ async def payment_proof_handler(client, message):
                 photo=message.photo.file_id,
                 caption=caption,
                 reply_markup=buttons,
-                parse_mode="html"
+                parse_mode="HTML"
             )
         else:
             full_caption = f"{caption}\n\n📝 Message:\n{message.text}"
@@ -169,7 +169,7 @@ async def payment_proof_handler(client, message):
                 admin,
                 full_caption,
                 reply_markup=buttons,
-                parse_mode="html"
+                parse_mode="HTML"
             )
 
     await message.reply("✅ Payment proof admin को भेज दिया गया है। कृपया response का इंतजार करें।")
