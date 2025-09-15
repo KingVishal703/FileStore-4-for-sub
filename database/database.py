@@ -56,7 +56,7 @@ async def del_user(user_id: int):
     return
 
 
-
+# --- Premium Expiry ---
 async def db_set_premium_expiry(user_id, expires):
     await user_data.update_one({"_id": user_id}, {"$set": {"premium_expires": expires}})
 
@@ -66,6 +66,7 @@ async def db_get_premium_expiry(user_id):
         return user.get("premium_expires", 0)
     return 0
 
+# --- Pending Plan ---
 async def db_set_pending_plan(user_id, plan):
     await user_data.update_one({"_id": user_id}, {"$set": {"pending_plan": plan}})
 
@@ -79,16 +80,14 @@ async def db_clear_pending_plan(user_id):
     await user_data.update_one({"_id": user_id}, {"$unset": {"pending_plan": ""}})
 
 
-from motor.motor_asyncio import AsyncIOMotorClient
-
 # --- Payment Pending Flag ---
 async def db_set_payment_pending(user_id: int, value: bool):
-    await db.users.update_one(
-        {"user_id": user_id},
+    await user_data.update_one(
+        {"_id": user_id},
         {"$set": {"payment_pending": value}},
         upsert=True
     )
 
 async def db_is_payment_pending(user_id: int) -> bool:
-    user = await db.users.find_one({"user_id": user_id})
+    user = await user_data.find_one({"_id": user_id})
     return bool(user and user.get("payment_pending", False))
