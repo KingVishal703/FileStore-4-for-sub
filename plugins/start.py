@@ -21,8 +21,36 @@ TUT_VID = str(TUT_VID)
 @Bot.on_message(filters.command('start') & filters.private)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
+    text = message.text or ""
 
-    #------- Force Subscription -------
+    #------ Add User --------
+    if not await present_user(user_id):
+        try:
+            await add_user(user_id)
+        except:
+            pass
+
+    # Agar user ne simple /start likha hai (without link) → Welcome message
+    if len(text.split()) == 1:
+        buttons = [
+            [InlineKeyboardButton("ʜᴇʟᴘ", callback_data="help"),
+             InlineKeyboardButton("ᴀʙᴏᴜᴛ", callback_data="about")],
+            [InlineKeyboardButton("• ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ •", callback_data="choose_plan")]
+        ]
+        return await message.reply_photo(
+            photo=START_PIC,
+            caption=START_MSG.format(
+                first=message.from_user.first_name,
+                last=message.from_user.last_name,
+                username=('@' + message.from_user.username) if message.from_user.username else "",
+                mention=message.from_user.mention,
+                id=message.from_user.id
+            ),
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+
+    # Yaha se file link case handle hoga
+    #---------------- Force Subscription Check -----------------
     try:
         await client.get_chat_member(FORCE_SUB_CHANNEL1, user_id)
         await client.get_chat_member(FORCE_SUB_CHANNEL2, user_id)
@@ -38,11 +66,8 @@ async def start_command(client: Client, message: Message):
         ], 1):
             if inv_link:
                 buttons.append([InlineKeyboardButton(f"Join Channel {ch_num}", url=inv_link)])
-        try:
-            reload_btn = [InlineKeyboardButton("Reload 🔄", url=f"https://t.me/{client.username}?start={message.command[1]}")]
-            buttons.append(reload_btn)
-        except IndexError:
-            pass
+        reload_btn = [InlineKeyboardButton("Reload 🔄", url=f"https://t.me/{client.username}?start={text.split()[1]}")]
+        buttons.append(reload_btn)
         return await message.reply_photo(
             photo=FORCE_PIC,
             caption=FORCE_MSG.format(
@@ -55,91 +80,45 @@ async def start_command(client: Client, message: Message):
             reply_markup=InlineKeyboardMarkup(buttons)
         )
 
-    #------ Add User --------
-    if not await present_user(user_id):
-        try:
-            await add_user(user_id)
-        except:
-            pass
+    #---------------- Verify / Premium Check -----------------
+    verify_status = await get_verify_status(user_id)
+    premium_expiry = await db_get_premium_expiry(user_id)
+    now = int(time.time())
+    verified = verify_status.get("is_verified", False) or (premium_expiry > now)
 
-    #------ Admin & Premium Check -------
-    if user_id in ADMINS:
-        verified = True
-    else:
-        verify_status = await get_verify_status(user_id)
-        premium_expiry = await db_get_premium_expiry(user_id)
-        now = int(time.time())
-        verified = verify_status.get("is_verified", False) or (premium_expiry > now)
-        # Token Handling
-        if TOKEN:
-            if verify_status.get("is_verified") and VERIFY_EXPIRE < (now - verify_status.get("verified_time", 0)):
-                await update_verify_status(user_id, is_verified=False)
-                verified = False
-            if message.text and "verify_" in message.text:
-                _, token = message.text.split("_", 1)
-                if verify_status.get("verify_token") != token:
-                    return await message.reply("Your token is invalid or expired. Try again by clicking /start.")
-                await update_verify_status(user_id, is_verified=True, verified_time=now)
-                verified = True
-                return await message.reply(
-                    f"Your token has been successfully verified and is valid for {get_exp_time(VERIFY_EXPIRE)}",
-                    protect_content=False,
-                    quote=True
-                )
-        if not verified:
-            # Send verify or buy premium
-            token = ''.join(random.choices(rohit.ascii_letters + rohit.digits, k=10))
-            await update_verify_status(user_id, verify_token=token, is_verified=False, verified_time=0, link="")
-            link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, f'https://telegram.dog/{client.username}?start=verify_{token}')
-            buttons = [
-                [InlineKeyboardButton("• ᴏᴘᴇɴ ʟɪɴᴋ •", url=link)],
-                [InlineKeyboardButton("• ᴛᴜᴛᴏʀɪᴀʟ •", url=TUT_VID)],
-                [InlineKeyboardButton("• ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ •", callback_data="choose_plan")]
-            ]
-            return await message.reply_photo(
-                photo=START_PIC,
-                caption="Your token has expired or you are not verified.\nPlease verify yourself or buy premium to continue using the bot.",
-                reply_markup=InlineKeyboardMarkup(buttons),
-                protect_content=False,
-                quote=True
-            )
+    # Agar user verified/premium nahi hai
+    if not verified:
+        token = ''.join(random.choices(rohit.ascii_letters + rohit.digits, k=10))
+        await update_verify_status(user_id, verify_token=token, is_verified=False, verified_time=0, link="")
+        link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, f'https://telegram.dog/{client.username}?start=verify_{token}')
+        buttons = [
+            [InlineKeyboardButton("• ᴏᴘᴇɴ ʟɪɴᴋ •", url=link)],
+            [InlineKeyboardButton("• ᴛᴜᴛᴏʀɪᴀʟ •", url=TUT_VID)],
+            [InlineKeyboardButton("• ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ •", callback_data="choose_plan")]
+        ]
+        return await message.reply_photo(
+            photo=START_PIC,
+            caption="⚠️ You are not verified!\n\nPlease verify yourself or buy premium to continue using the bot.",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
 
-    #------ Main Command Logic: If Verified & Premium -------
-    text = message.text or ""
-
-    if len(text) > 7:
-        try:
-            base64_string = text.split(" ", 1)[1]
-        except IndexError:
-            return
+    #---------------- File Handling (agar verified/premium hai) -----------------
+    try:
+        base64_string = text.split(" ", 1)[1]
         string = await decode(base64_string)
         argument = string.split("-")
         ids = []
+
         if len(argument) == 3:
-            try:
-                start = int(int(argument[1]) / abs(client.db_channel.id))
-                end = int(int(argument[2]) / abs(client.db_channel.id))
-                ids = range(start, end + 1) if start <= end else list(range(start, end - 1, -1))
-            except Exception as e:
-                print(f"Error decoding IDs: {e}")
-                return
+            start = int(int(argument[1]) / abs(client.db_channel.id))
+            end = int(int(argument[2]) / abs(client.db_channel.id))
+            ids = range(start, end + 1) if start <= end else list(range(start, end - 1, -1))
         elif len(argument) == 2:
-            try:
-                ids = [int(int(argument[1]) / abs(client.db_channel.id))]
-            except Exception as e:
-                print(f"Error decoding ID: {e}")
-                return
+            ids = [int(int(argument[1]) / abs(client.db_channel.id))]
 
         temp_msg = await message.reply("<b>Please wait...</b>")
-        try:
-            messages = await get_messages(client, ids)
-        except Exception as e:
-            await message.reply_text("Something went wrong!")
-            print(f"Error getting messages: {e}")
-            return
-        finally:
-            await temp_msg.delete()
-            codeflix_msgs = []
+        messages = await get_messages(client, ids)
+        await temp_msg.delete()
 
         for msg in messages:
             custom_text = "\n<b>📤 join mein channel 👉 @V_Anime_Hindi</b>"
@@ -151,76 +130,19 @@ async def start_command(client: Client, message: Message):
                 caption = custom_text
 
             reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
-            try:
-                copied_msg = await msg.copy(
-                    chat_id=user_id,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=reply_markup,
-                    protect_content=PROTECT_CONTENT,
-                )
-                codeflix_msgs.append(copied_msg)
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-                copied_msg = await msg.copy(
-                    chat_id=user_id,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=reply_markup,
-                    protect_content=PROTECT_CONTENT,
-                )
-                codeflix_msgs.append(copied_msg)
-            except Exception as e:
-                print(f"Failed to send message: {e}")
-
-        if FILE_AUTO_DELETE > 0:
-            notification_msg = await message.reply(
-                f"<b>This file will be deleted in {get_exp_time(FILE_AUTO_DELETE)}. Please save or forward it to your saved messages before it gets deleted.</b>"
+            await msg.copy(
+                chat_id=user_id,
+                caption=caption,
+                parse_mode=ParseMode.HTML,
+                reply_markup=reply_markup,
+                protect_content=PROTECT_CONTENT,
             )
-            await asyncio.sleep(FILE_AUTO_DELETE)
-            for snt_msg in codeflix_msgs:
-                if snt_msg:
-                    try:
-                        await snt_msg.delete()
-                    except Exception as e:
-                        print(f"Error deleting message {snt_msg.id}: {e}")
-            try:
-                reload_url = (
-                    f"https://t.me/{client.username}?start={message.command[1]}"
-                    if message.command and len(message.command) > 1
-                    else None
-                )
-                keyboard = InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("ɢᴇᴛ ғɪʟᴇ ᴀɢᴀɪɴ!", url=reload_url)]]
-                ) if reload_url else None
-                await notification_msg.edit("<b>Your video/file is successfully deleted!\nClick below button to get your deleted file/video 👇</b>", reply_markup=keyboard)
-            except Exception as e:
-                print(f"Error updating notification with 'Get File Again' button: {e}")
 
-    else:
-        buttons = []
-        for idx, inv_link in enumerate([getattr(client, "invitelink1", ""), getattr(client, "invitelink2", "")], 1):
-            if inv_link:
-                buttons.append([InlineKeyboardButton(f"Join Channel {idx}", url=inv_link)])
-        for idx, inv_link in enumerate([getattr(client, "invitelink3", ""), getattr(client, "invitelink4", "")], 3):
-            if inv_link:
-                buttons.append([InlineKeyboardButton(f"Join Channel {idx}", url=inv_link)])
-        try:
-            buttons.append([InlineKeyboardButton("ʀᴇʟᴏᴀᴅ", url=f"https://t.me/{client.username}?start={message.command[1]}")])
-        except IndexError:
-            pass
-        await message.reply_photo(
-            photo=START_PIC,
-            caption=START_MSG.format(
-                first=message.from_user.first_name,
-                last=message.from_user.last_name,
-                username=('@' + message.from_user.username) if message.from_user.username else "",
-                mention=message.from_user.mention,
-                id=message.from_user.id
-            ),
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
-
+    except Exception as e:
+        print(f"Error while sending file: {e}")
+        await message.reply("❌ Something went wrong while fetching your file.")
+    
+                        
 
 #------ User Listing -----
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
