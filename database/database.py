@@ -77,3 +77,18 @@ async def db_get_pending_plan(user_id):
 
 async def db_clear_pending_plan(user_id):
     await user_data.update_one({"_id": user_id}, {"$unset": {"pending_plan": ""}})
+
+
+from motor.motor_asyncio import AsyncIOMotorClient
+
+# --- Payment Pending Flag ---
+async def db_set_payment_pending(user_id: int, value: bool):
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {"payment_pending": value}},
+        upsert=True
+    )
+
+async def db_is_payment_pending(user_id: int) -> bool:
+    user = await db.users.find_one({"user_id": user_id})
+    return bool(user and user.get("payment_pending", False))
