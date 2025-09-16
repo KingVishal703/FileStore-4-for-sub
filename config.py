@@ -69,22 +69,6 @@ TUT_VID = os.environ.get("TUT_VID","https://t.me/hentai_Hanime_Update_Channel/72
 
 
 
-PREMIUM_PRICE_7DAY = 10  # ₹10 के लिए 7 दिन
-PREMIUM_PRICE_30DAY = 30  # ₹30 के लिए 30 दिन
-PREMIUM_PRICE_90DAY = 60  # ₹60 के लिए 90 दिन
-
-PREMIUM_DURATION = {
-    "10": 7 * 86400,
-    "30": 30 * 86400,
-    "60": 90 * 86400,
-}
-
-ADMIN_ID = 5654093580 # अपना Telegram User ID यहाँ डालें
-
-UPI_ID = "your-upi@bank"  # अपना UPI ID यहाँ डालें
-QR_CODE_URL = "https://example.com/your_qr_code.png"  # अपना QR कोड का URL यहाँ डालें
-
-
 HELP_TXT = "<b><blockquote>ᴛʜɪs ɪs ᴀɴ ғɪʟᴇ ᴛᴏ ʟɪɴᴋ ʙᴏᴛ \n\n❏ ʙᴏᴛ ᴄᴏᴍᴍᴀɴᴅs\n├/start : sᴛᴀʀᴛ ᴛʜᴇ ʙᴏᴛ\n├/about : ᴏᴜʀ Iɴғᴏʀᴍᴀᴛɪᴏɴ\n└/help : ʜᴇʟᴘ ʀᴇʟᴀᴛᴇᴅ ʙᴏᴛ\n\n sɪᴍᴘʟʏ ᴄʟɪᴄᴋ ᴏɴ ʟɪɴᴋ ᴀɴᴅ sᴛᴀʀᴛ ᴛʜᴇ ʙᴏᴛ ᴊᴏɪɴ ʙᴏᴛʜ ᴄʜᴀɴɴᴇʟs ᴀɴᴅ ᴛʀʏ ᴀɢᴀɪɴ ᴛʜᴀᴛs ɪᴛ.....!\n\n ᴅᴇᴠᴇʟᴏᴘᴇᴅ ʙʏ <a href=https://t.me/+I70vh9FUF9NiY2E1>KingBots</a></blockquote></b>"
 
 ABOUT_TXT = "<b><blockquote>◈ ᴄʀᴇᴀᴛᴏʀ: <a href=https://t.me/VKing7038>V W</a>\n◈ ꜰᴏᴜɴᴅᴇʀ ᴏꜰ : <a href=https://t.me/SpicyPulseHD>Spicy Pulse HD</a>\n◈ ᴀɴɪᴍᴇ ᴄʜᴀɴɴᴇʟ : <a href=https://t.me/+292kQS3vAioyNDVl>ANIME WORLD</a>\n◈ sᴇʀɪᴇs ᴄʜᴀɴɴᴇʟ : <a href=https://t.me/>ᴡᴇʙsᴇʀɪᴇs ғʟɪx</a>\n◈ ᴅᴇᴠᴇʟᴏᴘᴇʀ : <a href=https://t.me/+-rDUKJoRiGYzOTI1></a></blockquote></b>"
