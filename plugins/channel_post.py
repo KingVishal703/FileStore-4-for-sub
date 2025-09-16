@@ -78,7 +78,7 @@ async def channel_post(client: Client, message: Message):
             f"🎬 <b>New Video Uploaded!</b>\n\n{title_text}\n\n"
             f"🔗 <b>Link:</b> {link}\n\n"
             "⚠️ Bot ko bas ek bar verify kar lo aur pure din (24 hr) free mein videos ka maja lo\n\n"
-            "✅ How to Verify Bot -"
+            "✅ How to Verify Bot 👇 \n\n https://t.me/+CdVoRFO6G9VjNGI1"
         )
 
         await client.send_photo(
