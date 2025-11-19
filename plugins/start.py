@@ -125,7 +125,7 @@ async def start_command(client: Client, message: Message):
             await temp_msg.delete()
             codeflix_msgs = []  
         for msg in messages:  
-            custom_text = "\n\n<b>📤 join mein channel 👉 @V_Anime_Hindi</b>"  
+            custom_text = "\n\n<b>📤 join mein channel 👉 @Vip_adult_only</b>"  
             caption = msg.video.file_name + custom_text if msg.video else ""  
             reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None  
 
