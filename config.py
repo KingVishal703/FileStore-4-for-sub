@@ -39,7 +39,7 @@ DB_NAME = os.environ.get("DATABASE_NAME", "Cluster0")
 #Time in seconds for message delete, put 0 to never delete
 TIME = int(os.environ.get("TIME", "2400"))
 
-AUTO_POST_CHANNEL = -1002538118600   # yaha apne channel ka id dalo
+AUTO_POST_CHANNEL = 1002585505810   # yaha apne channel ka id dalo
 # Default image URL agar video ka thumbnail na mile
 DEFAULT_THUMBNAIL = "https://telegra.ph/file/ec17880d61180d3312d6a.jpg"
 
@@ -61,11 +61,11 @@ TOKEN = True if os.environ.get('TOKEN', "True") == "True" else False  #For Enabl
 
 #TOKEN = False if os.environ.get('TOKEN', "FALSE") == 'FALSE' else False # For disable Token 
 
-SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "")
-SHORTLINK_API = os.environ.get("SHORTLINK_API", "")
+SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "arolinks.com")
+SHORTLINK_API = os.environ.get("SHORTLINK_API", "07fd488b04eb3d854b8dcc64f7d43c4be189133f")
 VERIFY_EXPIRE = int(os.environ.get('VERIFY_EXPIRE', 86400)) # Add time in seconds
 IS_VERIFY = os.environ.get("IS_VERIFY", "True")
-TUT_VID = os.environ.get("TUT_VID","https://t.me/hentai_Hanime_Update_Channel/72")
+TUT_VID = os.environ.get("TUT_VID","https://t.me/How_To_Open_AllLinks/55")
 
 
 
