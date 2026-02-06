@@ -39,7 +39,7 @@ DB_NAME = os.environ.get("DATABASE_NAME", "Cluster0")
 #Time in seconds for message delete, put 0 to never delete
 TIME = int(os.environ.get("TIME", "2400"))
 
-AUTO_POST_CHANNEL = 1002585505810   # yaha apne channel ka id dalo
+AUTO_POST_CHANNEL = -1002585505810   # yaha apne channel ka id dalo
 # Default image URL agar video ka thumbnail na mile
 DEFAULT_THUMBNAIL = "https://telegra.ph/file/ec17880d61180d3312d6a.jpg"
 
@@ -47,7 +47,7 @@ DEFAULT_THUMBNAIL = "https://telegra.ph/file/ec17880d61180d3312d6a.jpg"
 FORCE_SUB_CHANNEL1 = int(os.environ.get("FORCE_SUB_CHANNEL1", "-1002160196977"))
 #put 0 to disable
 FORCE_SUB_CHANNEL2 = int(os.environ.get("FORCE_SUB_CHANNEL2", "-1002394633791"))#put 0 to disable
-FORCE_SUB_CHANNEL3 = int(os.environ.get("FORCE_SUB_CHANNEL3", "-1002585505810"))#put 0 to disable
+FORCE_SUB_CHANNEL3 = int(os.environ.get("FORCE_SUB_CHANNEL3", "0"))#put 0 to disable
 FORCE_SUB_CHANNEL4 = int(os.environ.get("FORCE_SUB_CHANNEL4", "-1002840913591"))#put 0 to disable
 
 TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "50"))
