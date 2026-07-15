@@ -44,9 +44,9 @@ AUTO_POST_CHANNEL = -1002585505810   # yaha apne channel ka id dalo
 DEFAULT_THUMBNAIL = "https://telegra.ph/file/ec17880d61180d3312d6a.jpg"
 
 #force sub channel id, if you want enable force sub
-FORCE_SUB_CHANNEL1 = int(os.environ.get("FORCE_SUB_CHANNEL1", "-1002160196977"))
+FORCE_SUB_CHANNEL1 = int(os.environ.get("FORCE_SUB_CHANNEL1", "-1004348395606"))
 #put 0 to disable
-FORCE_SUB_CHANNEL2 = int(os.environ.get("FORCE_SUB_CHANNEL2", "-1002394633791"))#put 0 to disable
+FORCE_SUB_CHANNEL2 = int(os.environ.get("FORCE_SUB_CHANNEL2", "-1003893355223"))#put 0 to disable
 FORCE_SUB_CHANNEL3 = int(os.environ.get("FORCE_SUB_CHANNEL3", "0"))#put 0 to disable
 FORCE_SUB_CHANNEL4 = int(os.environ.get("FORCE_SUB_CHANNEL4", "-1002840913591"))#put 0 to disable
 
